@@ -8,14 +8,119 @@
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-  <div id="tester" style="width:600px;height:250px;"></div>
+  <h1>Car Cost Calculator</h1>
+  <p>If you are trying to compare two different vehicles, this will help you decide how much the cheaper operating cost compares to initial cost. At what point the two cars will cost the same and when you will start saving money in the long term. A common example is comparing a cheap commuter gas car to a tesla model 3. Is the tesla worth it? At what point is it worth it?</p>
+
+  <h3>Car 1</h3>
+  <input id="car-name-1" placeholder="Car 1 Name" value="corolla" />
+  <input id="car-mpg-1" placeholder="Car 1 MPG" value="30" />
+  <input id="car-initial-cost-1" placeholder="Car 1 Initial Cost" value="20000" />
+
+  <h3>Car 2</h3>
+  <input id="car-name-2" placeholder="Car 2 Name" value="truck" />
+  <input id="car-mpg-2" placeholder="Car 2 MPG" value="15" />
+  <input id="car-initial-cost-2" placeholder="Car 2 Initial Cost" value="10000" />
+
+  <h3>Other Costs</h3>
+  <input id="average-yearly-miles" placeholder="Average Miles per Year" value="10000" />
+  <input id="gas-price" placeholder="Gasoline Price per Gallon" value="2.5" />
+  <input id="electricity-price" placeholder="Electricity Price per kWh" value="0.07" />
+
+  <button id="calculate-btn">Calculate!</button>
+
+  <div id="graph"></div>
+
+  <h3>To Break Even:</h3>
+  <div id="miles-to-break-even">0 Miles</div>
+  <div id="years-to-break-even">0 Years</div>
 
   <script>
-    TESTER = document.getElementById('tester');
-    Plotly.newPlot( TESTER, [{
-    x: [1, 2, 3, 4, 5],
-    y: [1, 2, 4, 8, 16] }], {
-    margin: { t: 0 } } );
+
+    var calculate = document.getElementById('calculate-btn');
+
+    calculate.addEventListener('click', function() {
+
+      // get all items
+      var car1name = document.getElementById('car-name-1').value;
+      var car1mpg = document.getElementById('car-mpg-1').value;
+      var car1initial = document.getElementById('car-initial-cost-1').value;
+
+      var car2name = document.getElementById('car-name-2').value;
+      var car2mpg = document.getElementById('car-mpg-2').value;
+      var car2initial = document.getElementById('car-initial-cost-2').value;
+
+      // costs
+      var yearlyMiles = document.getElementById('average-yearly-miles').value;
+      var gasPrice = document.getElementById('gas-price').value;
+      var electricityPrice = document.getElementById('electricity-price').value;
+
+      // break even
+      var milesBE = document.getElementById('miles-to-break-even');
+      var yearsBE = document.getElementById('years-to-break-even');
+
+      // gas cost / mpg => cost per mile
+      var car1CPM = gasPrice / car1mpg;
+      var car2CPM = gasPrice / car2mpg;
+
+      // y = mx + b
+      // total cost = [(cost per mile) * (miles)] + (inital cost)
+      // figure out point of equality and then go a little past
+      // x = (initial1 - initial2) / (m - n)
+
+      var breakEvenX = (Math.abs(car1initial - car2initial)) / (Math.abs(car1CPM - car2CPM));
+
+      milesBE.innerHTML = breakEvenX + ' Miles';
+
+      // figure years to break even based on average miles per year
+      yearsBE.innerHTML = (parseInt(breakEvenX) / parseInt(yearlyMiles)).toString() + ' Years';
+
+      // add some to the break even to go beyond it
+      breakEvenX += 20000;
+
+      // plot until both cars are equal, car1 total cost === car2 total cost
+      var car1X = new Array();
+      var car1Y = new Array();
+
+      for(let i = 0; i < breakEvenX; i += 1000){
+        car1X.push(i);
+
+        // calculate y
+        // y = mx + b
+        var y = parseInt((car1CPM * i)) + parseInt(car1initial);
+        car1Y.push(y);
+      }
+
+      var car2X = new Array();
+      var car2Y = new Array();
+
+      for(let i = 0; i < breakEvenX; i += 1000){
+        car2X.push(i);
+
+        // calculate y
+        // y = mx + b
+        var y = parseInt((car2CPM * i)) + parseInt(car2initial);
+
+        car2Y.push(y);
+      }
+
+      var car1 = {
+        x: car1X,
+        y: car1Y,
+        type: 'scatter',
+        name: car1name
+      };
+
+      var car2 = {
+        x: car2X,
+        y: car2Y,
+        type: 'scatter',
+        name: car2name
+      };
+
+      var data = [car1, car2];
+
+      Plotly.newPlot('graph', data);
+    });
   </script>
 </body>
 </html>
